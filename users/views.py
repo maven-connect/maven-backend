@@ -1,7 +1,6 @@
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
-from urllib import parse
 from google.auth.transport import requests
 from google.oauth2 import id_token
 import json
@@ -32,13 +31,13 @@ def googleLogin(request):
         user = authenticate(request, email=email)
         if user is not None:
             login(request, user)
-            return JsonResponse({'email': email})
+            return JsonResponse({'email': email, 'new_user': False})
         else:
             user = User(username=email)
             user.set_unusable_password()
             user.save()
             login(request, user)
-            return JsonResponse({'email': email})
+            return JsonResponse({'email': email, 'new_user': True})
     except ValueError as e:
         return HttpResponseBadRequest('Bad request')
     
