@@ -3,7 +3,7 @@ from django.db import models
 
 class CustomUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
-    batch = models.IntegerField()
+    # batch = models.IntegerField()
     
     branches = [
         ("CS", "Computer Science"),
@@ -12,4 +12,4 @@ class CustomUser(AbstractUser):
         ("SM", "Smart Manufacturing"),
         ("DS", "Design"),
     ]
-    branch = models.CharField(choices=branches, null=True)
+    # branch = models.CharField(choices=branches, null=True, max_length=4, blank=True)

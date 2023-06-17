@@ -5,9 +5,10 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 import json
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 import os
-from users.models import CustomUser
+from django.contrib.auth import get_user_model
+
+CustomUser = get_user_model()
 
 CLIENT_ID = os.getenv('APP_CLIENT_ID')
 
@@ -32,13 +33,13 @@ def googleLogin(request):
         user = authenticate(request, email=email)
         if user is not None:
             login(request, user)
-            return JsonResponse({'email': email, 'new_user': False})
+            return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
             user = CustomUser(username=email,email=email)
             user.set_unusable_password()
             user.save()
             login(request, user)
-            return JsonResponse({'email': email, 'new_user': True})
+            return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
         return HttpResponseBadRequest('Bad request')
     
@@ -50,9 +51,9 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        return JsonResponse({'email': user.email})
+        return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
     else:
-        return JsonResponse({'error': 'Invalid username or password'}, status=401)
+        return HttpResponseBadRequest('Invalid username or password.')
     
 @require_POST
 def register_user(request):
