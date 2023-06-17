@@ -7,6 +7,7 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 import os
+from users.models import CustomUser
 
 CLIENT_ID = os.getenv('APP_CLIENT_ID')
 
@@ -33,7 +34,7 @@ def googleLogin(request):
             login(request, user)
             return JsonResponse({'email': email, 'new_user': False})
         else:
-            user = User(username=email)
+            user = CustomUser(username=email,email=email)
             user.set_unusable_password()
             user.save()
             login(request, user)
@@ -52,6 +53,27 @@ def login_view(request):
         return JsonResponse({'email': user.email})
     else:
         return JsonResponse({'error': 'Invalid username or password'}, status=401)
+    
+@require_POST
+def register_user(request):
+    body = json.loads(request.body)
+    username = body.get('email')
+    password = body.get('password')
+    user_exists = CustomUser.objects.filter(username=username).exists()
+
+    if user_exists or request.user:
+        return HttpResponseBadRequest('User already exists')
+    else:
+        user = CustomUser(username=username,password=password)
+        user.save()
+        return HttpResponse('Successfully Registered')
+
+@require_POST
+def verify_user(request):
+    if request.user.is_authenticated:
+        pass
+    else:
+        return HttpResponseBadRequest('Authenticate User')
 
 def logout_view(request):
     logout(request)
