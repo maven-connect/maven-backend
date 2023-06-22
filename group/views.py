@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from .models import Group, Message
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.core import serializers
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import json
@@ -35,4 +35,15 @@ def new_group(request):
         return HttpResponse('Group %s created successfully.'%(group.name) )
     else:
         return HttpResponseBadRequest('No group name field found.')
+    
+@login_required
+@require_GET
+def get_joined_groups(request) :
+    user = request.user    
+    if user.is_verified:
+        joined_groups = user.group_set.all()
+        return JsonResponse(joined_groups, safe=False)
+    else:
+        return HttpResponseBadRequest('User is not verified.')
+
     
