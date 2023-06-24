@@ -1,14 +1,21 @@
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseForbidden
 from google.auth.transport import requests
 from google.oauth2 import id_token
 import json
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 import os
+from django.contrib.auth import get_user_model
+from group.models import Group
+
+CustomUser = get_user_model()
 
 CLIENT_ID = os.getenv('APP_CLIENT_ID')
+
+def home(request) :
+    return HttpResponse('Maven Backend Server')
 
 @csrf_exempt
 @require_POST
@@ -31,13 +38,13 @@ def googleLogin(request):
         user = authenticate(request, email=email)
         if user is not None:
             login(request, user)
-            return JsonResponse({'email': email, 'new_user': False})
+            return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
-            user = User(username=email)
+            user = CustomUser(username=email,email=email)
             user.set_unusable_password()
             user.save()
             login(request, user)
-            return JsonResponse({'email': email, 'new_user': True})
+            return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
         return HttpResponseBadRequest('Bad request')
     
@@ -49,9 +56,43 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        return JsonResponse({'email': user.email})
+        return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
     else:
-        return JsonResponse({'error': 'Invalid username or password'}, status=401)
+        return HttpResponseBadRequest('Invalid username or password.')
+    
+@require_POST
+def register_user(request):
+    body = json.loads(request.body)
+    username = body.get('email')
+    password = body.get('password')
+    user_exists = CustomUser.objects.filter(username=username).exists()
+
+    if user_exists or request.user:
+        return HttpResponseBadRequest('User already exists')
+    else:
+        user = CustomUser(username=username,password=password)
+        user.save()
+        return HttpResponse('Successfully Registered')
+
+@require_POST
+@login_required
+def verify_user(request):
+    user = CustomUser.objects.get(username=request.user.username)
+    body = json.loads(request.body)
+    branch = body.get('branch')
+    batch = body.get('batch')
+    if branch and batch :
+        try:
+            user.batch = int(batch)
+            user.branch = branch
+            user.is_verified = True
+            user.save()
+            matching_groups = Group.objects.filter(batch=batch, branch=branch)
+            for group in matching_groups:
+                group.users.add(user)
+            return HttpResponse('Verification successfull')
+        except:
+            return HttpResponseBadRequest('Incorrect Payload')
 
 def logout_view(request):
     logout(request)
