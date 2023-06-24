@@ -14,6 +14,9 @@ CustomUser = get_user_model()
 
 CLIENT_ID = os.getenv('APP_CLIENT_ID')
 
+def home(request) :
+    return HttpResponse('Maven Backend Server')
+
 @csrf_exempt
 @require_POST
 def googleLogin(request):
