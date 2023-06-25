@@ -37,16 +37,16 @@ def googleLogin(request):
         email = idinfo.get('email')
         user = authenticate(request, email=email)
         if user is not None:
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.googleAuthBackend')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
             user = CustomUser(username=email,email=email)
             user.set_unusable_password()
             user.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.googleAuthBackend')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
-        return HttpResponseBadRequest('Bad request')
+        return HttpResponseBadRequest('Bad request:  %s' %e)
     
 @require_POST
 def login_view(request):
