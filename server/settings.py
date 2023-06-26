@@ -6,8 +6,8 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = False
 
 SESSION_COOKIE_AGE = 86400
 
@@ -46,8 +46,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -89,12 +89,13 @@ DATABASES = {
 }
 
 #Backends
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'server.authBackend.EmailPasswordBackend',
-    'server.authBackend.googleAuthBackend',
-]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
+AUTHENTICATION_BACKENDS = [
+    'server.authBackend.googleAuthBackend',
+    'server.authBackend.EmailPasswordBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

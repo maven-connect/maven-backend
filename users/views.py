@@ -1,4 +1,4 @@
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseForbidden
@@ -33,17 +33,16 @@ def googleLogin(request):
     try:
         idToken = json.loads(request.body).get('id_token')
         idinfo = id_token.verify_oauth2_token(idToken, requests.Request(), CLIENT_ID)
-
         email = idinfo.get('email')
         user = authenticate(request, email=email)
         if user is not None:
-            login(request, user, backend='django.contrib.auth.backends.googleAuthBackend')
+            login(request, user, backend='server.authBackend.googleAuthBackend')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
-            user = CustomUser(username=email,email=email)
+            user = CustomUser(email=email)
             user.set_unusable_password()
             user.save()
-            login(request, user, backend='django.contrib.auth.backends.googleAuthBackend')
+            login(request, user, backend='server.authBackend.googleAuthBackend')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
         return HttpResponseBadRequest('Bad request:  %s' %e)
@@ -51,33 +50,33 @@ def googleLogin(request):
 @require_POST
 def login_view(request):
     body = json.loads(request.body)
-    username = body.get('username')
+    email = body.get('email')
     password = body.get('password')
-    user = authenticate(request, username=username, password=password)
+    user = authenticate(request, email=email, password=password)
     if user is not None:
-        login(request, user)
+        login(request, user, backend='server.authBackend.EmailPasswordBackend')
         return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
     else:
-        return HttpResponseBadRequest('Invalid username or password.')
+        return HttpResponseBadRequest('Invalid email or password.')
     
 @require_POST
 def register_user(request):
     body = json.loads(request.body)
-    username = body.get('email')
+    email = body.get('email')
     password = body.get('password')
-    user_exists = CustomUser.objects.filter(username=username).exists()
+    user_exists = CustomUser.objects.filter(email=email).exists()
 
     if user_exists or request.user:
         return HttpResponseBadRequest('User already exists')
     else:
-        user = CustomUser(username=username,password=password)
+        user = CustomUser(email=email,password=password)
         user.save()
-        return HttpResponse('Successfully Registered')
+        return JsonResponse({'message': 'Successfully Registered'})
 
 @require_POST
 @login_required
 def verify_user(request):
-    user = CustomUser.objects.get(username=request.user.username)
+    user = CustomUser.objects.get(email=request.user.email)
     body = json.loads(request.body)
     branch = body.get('branch')
     batch = body.get('batch')
@@ -90,7 +89,7 @@ def verify_user(request):
             matching_groups = Group.objects.filter(batch=batch, branch=branch)
             for group in matching_groups:
                 group.users.add(user)
-            return HttpResponse('Verification successfull')
+            return JsonResponse({'message': 'Verification successfull'})
         except:
             return HttpResponseBadRequest('Incorrect Payload')
 
@@ -98,3 +97,10 @@ def logout_view(request):
     logout(request)
     return HttpResponse('Successfully Logged out.')
 
+@require_GET
+def get_profile(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'message': 'yes'})
+    else:
+        return JsonResponse({'error': 'User not authenticated'},status='403')
+    
