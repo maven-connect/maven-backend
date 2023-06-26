@@ -66,7 +66,7 @@ def register_user(request):
     password = body.get('password')
     user_exists = CustomUser.objects.filter(email=email).exists()
 
-    if user_exists or request.user:
+    if user_exists or request.user.is_authenticated:
         return HttpResponseBadRequest('User already exists')
     else:
         user = CustomUser(email=email,password=password)
