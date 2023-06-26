@@ -1,4 +1,5 @@
 *.env
 db.sqlite3
 .vercel
-*/__pycache__/*
+__pycache__/
+*.pyc
