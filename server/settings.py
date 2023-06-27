@@ -92,8 +92,8 @@ DATABASES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 AUTHENTICATION_BACKENDS = [
-    'server.authBackend.googleAuthBackend',
-    'server.authBackend.EmailPasswordBackend',
+    'server.authBackend.CustomAuth',
+    # 'server.authBackend.EmailPasswordBackend',
     # 'django.contrib.auth.backends.ModelBackend',
 ]
 

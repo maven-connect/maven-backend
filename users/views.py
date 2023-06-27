@@ -1,7 +1,7 @@
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseForbidden
+from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
 from google.auth.transport import requests
 from google.oauth2 import id_token
 import json
@@ -36,13 +36,13 @@ def googleLogin(request):
         email = idinfo.get('email')
         user = authenticate(request, email=email)
         if user is not None:
-            login(request, user, backend='server.authBackend.googleAuthBackend')
+            login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
             user = CustomUser(email=email)
             user.set_unusable_password()
             user.save()
-            login(request, user, backend='server.authBackend.googleAuthBackend')
+            login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
         return HttpResponseBadRequest('Bad request:  %s' %e)
@@ -52,9 +52,10 @@ def login_view(request):
     body = json.loads(request.body)
     email = body.get('email')
     password = body.get('password')
+
     user = authenticate(request, email=email, password=password)
     if user is not None:
-        login(request, user, backend='server.authBackend.EmailPasswordBackend')
+        login(request, user, backend='server.authBackend.CustomAuth')
         return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
     else:
         return HttpResponseBadRequest('Invalid email or password.')
@@ -64,14 +65,16 @@ def register_user(request):
     body = json.loads(request.body)
     email = body.get('email')
     password = body.get('password')
-    user_exists = CustomUser.objects.filter(email=email).exists()
+    if email.endswith('@iiitdmj.ac.in'):
+        user_exists = CustomUser.objects.filter(email=email).exists()
 
-    if user_exists or request.user.is_authenticated:
-        return HttpResponseBadRequest('User already exists')
+        if user_exists or request.user.is_authenticated:
+            return HttpResponseBadRequest('User already exists')
+        else:
+            user = CustomUser.objects.create_user(email=email,password=password)
+            return JsonResponse({'message': 'Successfully Registered'})
     else:
-        user = CustomUser(email=email,password=password)
-        user.save()
-        return JsonResponse({'message': 'Successfully Registered'})
+        return HttpResponseBadRequest('Only IIITDMJ organisation emails can be registered.')
 
 @require_POST
 @login_required
@@ -100,7 +103,7 @@ def logout_view(request):
 @require_GET
 def get_profile(request):
     if request.user.is_authenticated:
-        return JsonResponse({'message': 'yes'})
+        return JsonResponse({'message': 'User is authenticated', 'email': request.user.email, 'verified': request.user.is_verified})
     else:
         return JsonResponse({'error': 'User not authenticated'},status='403')
     
