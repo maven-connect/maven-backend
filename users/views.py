@@ -45,7 +45,7 @@ def googleLogin(request):
             login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
-        return HttpResponseBadRequest('Bad request:  %s' %e)
+        return JsonResponse({'error': '%s' %e},status=400)
     
 @require_POST
 def login_view(request):
@@ -86,15 +86,16 @@ def verify_user(request):
     if branch and batch :
         try:
             user.batch = int(batch)
-            user.branch = branch
+            user.user_branch = branch
             user.is_verified = True
-            user.save()
-            matching_groups = Group.objects.filter(batch=batch, branch=branch)
+            matching_groups = Group.objects.filter(batch=batch)
             for group in matching_groups:
                 group.users.add(user)
+            user.save()
             return JsonResponse({'message': 'Verification successfull'})
-        except:
-            return HttpResponseBadRequest('Incorrect Payload')
+        except KeyError as e:
+            print(e)
+            return JsonResponse({'error':'Incorrect Payload'}, status=400)
 
 def logout_view(request):
     logout(request)

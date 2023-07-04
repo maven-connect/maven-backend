@@ -41,8 +41,10 @@ def new_group(request):
 def get_joined_groups(request) :
     user = request.user    
     if user.is_verified:
-        joined_groups = user.group_set.all()
-        return JsonResponse(joined_groups, safe=False)
+        joined_groups = []
+        for grp in user.group_set.all():
+            joined_groups.append({"name":grp.name, "batch": grp.batch})
+        return JsonResponse({"groups": joined_groups}, safe=False)
     else:
         return HttpResponseBadRequest('User is not verified.')
 
