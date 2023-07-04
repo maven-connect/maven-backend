@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone  
 from django.utils.translation import gettext_lazy as _  
+from .managers import CustomUserManager
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):  
     username = None  
@@ -13,10 +14,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)  
     is_verified = models.BooleanField(default=False)
     batch = models.IntegerField(null=True, blank=True)
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
     branches = [
         ("CS", "Computer Science"),
         ("ECE", "Electronics"),
@@ -24,7 +21,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ("SM", "Smart Manufacturing"),
         ("DS", "Design"),
     ]
-    branch = models.CharField(choices=branches, null=True, max_length=4, blank=True)
+    user_branch = models.CharField(choices=branches, null=True, max_length=4, blank=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    
+    objects = CustomUserManager()
 
     def has_perm(self, perm, obj=None):  
         return True  
