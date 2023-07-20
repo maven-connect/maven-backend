@@ -49,32 +49,39 @@ def googleLogin(request):
     
 @require_POST
 def login_view(request):
-    body = json.loads(request.body)
-    email = body.get('email')
-    password = body.get('password')
+    try:
+        body = json.loads(request.body)
+        email = body.get('email')
+        password = body.get('password')
 
-    user = authenticate(request, email=email, password=password)
-    if user is not None:
-        login(request, user, backend='server.authBackend.CustomAuth')
-        return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
-    else:
-        return HttpResponseBadRequest('Invalid email or password.')
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user, backend='server.authBackend.CustomAuth')
+            return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
+        else:
+            return HttpResponseBadRequest('Invalid email or password.')
+    except:
+        return JsonResponse({"message": "Bad Request"}, status=400)
+        
     
 @require_POST
 def register_user(request):
-    body = json.loads(request.body)
-    email = body.get('email')
-    password = body.get('password')
-    if email.endswith('@iiitdmj.ac.in'):
-        user_exists = CustomUser.objects.filter(email=email).exists()
+    try:
+        body = json.loads(request.body)
+        email = body.get('email')
+        password = body.get('password')
+        if email.endswith('@iiitdmj.ac.in'):
+            user_exists = CustomUser.objects.filter(email=email).exists()
 
-        if user_exists or request.user.is_authenticated:
-            return HttpResponseBadRequest('User already exists')
+            if user_exists or request.user.is_authenticated:
+                return HttpResponseBadRequest('User already exists')
+            else:
+                user = CustomUser.objects.create_user(email=email,password=password)
+                return JsonResponse({'message': 'Successfully Registered'})
         else:
-            user = CustomUser.objects.create_user(email=email,password=password)
-            return JsonResponse({'message': 'Successfully Registered'})
-    else:
-        return HttpResponseBadRequest('Only IIITDMJ organisation emails can be registered.')
+            return HttpResponseBadRequest('Only IIITDMJ organisation emails can be registered.')
+    except:
+        return JsonResponse({"message": "Bad Request"}, status=400)
 
 @require_POST
 @login_required
@@ -99,7 +106,7 @@ def verify_user(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponse('Successfully Logged out.')
+    return HttpResponse('Logged out')
 
 @require_GET
 def get_profile(request):

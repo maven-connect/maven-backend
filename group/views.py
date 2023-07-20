@@ -6,21 +6,25 @@ from django.core import serializers
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import json
 
+
 @login_required
 @require_POST
 def new_message(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
 
-    user = request.user 
-    content = request.POST.get('content')
-    message = Message(group=group, user=user, content=content)
-    message.save()
+    try:
+        user = request.user 
+        content = request.POST.get('content')
+        message = Message(group=group, user=user, content=content)
+        message.save()
 
-    chats = Message.objects.filter(group=group).order_by('timestamp')
+        chats = Message.objects.filter(group=group).order_by('timestamp')
 
-    chat_data = serializers.serialize('json', chats)
+        chat_data = serializers.serialize('json', chats)
 
-    return JsonResponse({'chats': chat_data}, safe=False)
+        return JsonResponse({'chats': chat_data}, safe=False)
+    except:
+        return JsonResponse({'message': 'Error creating message'}, status=400)
 
 @login_required
 @require_POST
@@ -32,7 +36,7 @@ def new_group(request):
     if group_name and group_batch:
         group = Group.objects.create(name=group_name, batch=group_batch)
         group.users.add(user)
-        return HttpResponse('Group %s created successfully.'%(group.name) )
+        return JsonResponse({'message': 'Group %s created successfully.'%(group.name)},status=200 )
     else:
         return HttpResponseBadRequest('No group name field found.')
     
@@ -46,6 +50,25 @@ def get_joined_groups(request) :
             joined_groups.append({"name":grp.name, "batch": grp.batch})
         return JsonResponse({"groups": joined_groups}, safe=False)
     else:
-        return HttpResponseBadRequest('User is not verified.')
-
+        return JsonResponse({'error': 'User is not verified.'}, status=400)
     
+
+@login_required
+@require_GET
+def get_group_messages(request, group):
+    user = request.user    
+    if user.is_verified:
+        group = get_object_or_404(Group, name=group)
+        messages = Message.objects.filter(group=group).order_by('timestamp')[:30]
+
+        message_data = []
+        for message in messages:
+            message_data.append({
+                'content': message.content,
+                'timestamp': message.timestamp.isoformat(),
+                'user': message.user.email,
+            })
+        
+        return JsonResponse({'messages': message_data})
+    else:
+        return JsonResponse({'error': 'User is not verified.'}, status=400)
