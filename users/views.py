@@ -53,13 +53,14 @@ def login_view(request):
         body = json.loads(request.body)
         email = body.get('email')
         password = body.get('password')
-
+        print(email, password)
         user = authenticate(request, email=email, password=password)
+        print(user)
         if user is not None:
             login(request, user, backend='server.authBackend.CustomAuth')
-            return JsonResponse({'email': user.email, 'verified': user.is_verified}, status=200)
+            return JsonResponse({'email': user.email, 'verified': user.is_verified, "is_staff": user.is_userStaff}, status=200)
         else:
-            return HttpResponseBadRequest('Invalid email or password.')
+            return JsonResponse({'error': 'Invalid email or password.'}, status=400)
     except:
         return JsonResponse({"message": "Bad Request"}, status=400)
         
@@ -95,9 +96,14 @@ def verify_user(request):
             user.batch = int(batch)
             user.user_branch = branch
             user.is_verified = True
-            matching_groups = Group.objects.filter(batch=batch)
-            for group in matching_groups:
+            batch_groups = Group.objects.filter(batch=batch, is_BatchCommon=True)
+            for group in batch_groups:
                 group.users.add(user)
+            
+            branch_groups = Group.objects.filter(batch=batch, branch=branch)
+            for group in branch_groups:
+                group.users.add(user)
+
             user.save()
             return JsonResponse({'message': 'Verification successfull'})
         except KeyError as e:
@@ -110,8 +116,9 @@ def logout_view(request):
 
 @require_GET
 def get_profile(request):
-    if request.user.is_authenticated:
-        return JsonResponse({'message': 'User is authenticated', 'email': request.user.email, 'verified': request.user.is_verified})
+    user = request.user 
+    if user.is_authenticated:
+        return JsonResponse({'message': 'User is authenticated', 'email': user.email, 'verified': user.is_verified, 'is_userStaff': user.is_userStaff, 'branch': user.user_branch})
     else:
         return JsonResponse({'error': 'User not authenticated'},status='403')
     

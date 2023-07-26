@@ -17,7 +17,7 @@ class CustomAuth(BaseBackend):
             except UserModel.DoesNotExist:
                 return None
             else:
-                if user.check_password(password):
+                if user.password == password:
                     return user
                 else:
                     return None

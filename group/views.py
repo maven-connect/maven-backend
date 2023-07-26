@@ -3,42 +3,52 @@ from .models import Group, Message
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
 from django.core import serializers
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 import json
 
+# @login_required
+# @require_POST
+# def new_message(request, group_id):
+#     group = get_object_or_404(Group, pk=group_id)
 
-@login_required
-@require_POST
-def new_message(request, group_id):
-    group = get_object_or_404(Group, pk=group_id)
+#     try:
+#         user = request.user 
+#         content = request.POST.get('content')
+#         message = Message(group=group, user=user, content=content)
+#         message.save()
 
-    try:
-        user = request.user 
-        content = request.POST.get('content')
-        message = Message(group=group, user=user, content=content)
-        message.save()
+#         chats = Message.objects.filter(group=group).order_by('timestamp')
 
-        chats = Message.objects.filter(group=group).order_by('timestamp')
+#         chat_data = serializers.serialize('json', chats)
 
-        chat_data = serializers.serialize('json', chats)
-
-        return JsonResponse({'chats': chat_data}, safe=False)
-    except:
-        return JsonResponse({'message': 'Error creating message'}, status=400)
+#         return JsonResponse({'chats': chat_data}, safe=False)
+#     except:
+#         return JsonResponse({'message': 'Error creating message'}, status=400)
 
 @login_required
 @require_POST
 def new_group(request):
-    user = request.user
-    body = json.loads(request.body)
-    group_name = body.get('name')
-    group_batch = body.get('batch')
-    if group_name and group_batch:
-        group = Group.objects.create(name=group_name, batch=group_batch)
-        group.users.add(user)
-        return JsonResponse({'message': 'Group %s created successfully.'%(group.name)},status=200 )
-    else:
-        return HttpResponseBadRequest('No group name field found.')
+    try:
+        user = request.user
+        body = json.loads(request.body)
+        group_name = body.get('name')
+        group_batch = body.get('batch')
+        group_branch = body.get('branch')
+        description = body.get('description')
+
+        if user.is_userStaff and group_name and group_batch:
+            if group_branch:
+                group = Group.objects.create(name=group_name, batch=group_batch, branch=group_branch, description=description)
+                group.users.add(user)
+                return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
+            else:
+                group = Group.objects.create(name=group_name, batch=group_batch, is_BatchCommon=True, description=description)
+                group.users.add(user)
+                return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
+        else:
+            return JsonResponse({'error': "No group name field found."}, status=400)
+    except:
+        return JsonResponse({"error": "Error"}, status=400)
     
 @login_required
 @require_GET
@@ -47,11 +57,24 @@ def get_joined_groups(request) :
     if user.is_verified:
         joined_groups = []
         for grp in user.group_set.all():
-            joined_groups.append({"name":grp.name, "batch": grp.batch})
+            joined_groups.append({"name":grp.name, "batch": grp.batch, "branch": grp.branch, "description": grp.description})
         return JsonResponse({"groups": joined_groups}, safe=False)
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
     
+@login_required
+@require_GET
+def get_group_participants(request, group_name):
+    user = request.user
+    if user.is_verified:
+        group = Group.objects.get(name=group_name)
+        users = group.users.all()
+        userList = []
+        for item in users:
+            userList.append({"email": item.email, "date_joined": item.date_joined, "branch": item.branch, "batch": item.batch})
+        return JsonResponse({"userList": userList}, status=200)
+    else:
+        return JsonResponse({"error": "User not verified"})
 
 @login_required
 @require_GET
