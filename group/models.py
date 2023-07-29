@@ -30,3 +30,16 @@ class Message(models.Model):
     def __str__(self):
         return self.user.email + ": " + self.content[:10] 
 
+class PermissionIssueMessage(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    categories = [
+        ("ISS", "Issue"),
+        ("PER", "Permission"),
+    ]
+    category = models.CharField(choices=categories, max_length=3)
+    content = models.TextField(max_length=1000)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.category + ": " + self.content[:10] 
