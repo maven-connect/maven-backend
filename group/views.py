@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from .models import Group, Message
+from .models import Group, Message, PermissionIssueMessage
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
 from django.core import serializers
@@ -78,7 +78,7 @@ def get_group_participants(request, group_name):
 
 @login_required
 @require_GET
-def get_group_messages(request, group):
+def get_group_data(request, group):
     user = request.user    
     if user.is_verified:
         group = get_object_or_404(Group, name=group)
@@ -92,6 +92,15 @@ def get_group_messages(request, group):
                 'user': message.user.email,
             })
         
-        return JsonResponse({'messages': message_data})
+        permissionIssues = PermissionIssueMessage.objects.filter(group=group).order_by('-timestamp')[:30]
+        permissionIssues = permissionIssues[::-1]
+        isp_data = []
+        for isp in permissionIssues:
+            isp_data.append({
+                'content': isp.content,
+                'timestamp': isp.timestamp.isoformat(),
+                'user': isp.user.email,
+            })
+        return JsonResponse({'messages': message_data, "isp": isp_data})
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
