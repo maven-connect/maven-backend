@@ -38,11 +38,11 @@ def new_group(request):
 
         if user.is_userStaff and group_name and group_batch:
             if group_branch:
-                group = Group.objects.create(name=group_name, batch=group_batch, branch=group_branch, description=description)
+                group = Group.objects.create(name=group_name, batch=group_batch, branch=group_branch, description=description, admin=user)
                 group.users.add(user)
                 return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
             else:
-                group = Group.objects.create(name=group_name, batch=group_batch, is_BatchCommon=True, description=description)
+                group = Group.objects.create(name=group_name, batch=group_batch, is_BatchCommon=True, description=description, admin=user)
                 group.users.add(user)
                 return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
         else:
@@ -57,7 +57,7 @@ def get_joined_groups(request) :
     if user.is_verified:
         joined_groups = []
         for grp in user.group_set.all():
-            joined_groups.append({"name":grp.name, "batch": grp.batch, "branch": grp.branch, "description": grp.description})
+            joined_groups.append({"name":grp.name, "batch": grp.batch, "branch": grp.branch, "description": grp.description, "admin": grp.admin.email if grp.admin else None })
         return JsonResponse({"groups": joined_groups}, safe=False)
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
@@ -71,7 +71,7 @@ def get_group_participants(request, group_name):
         users = group.users.all()
         userList = []
         for item in users:
-            userList.append({"email": item.email, "date_joined": item.date_joined, "branch": item.branch, "batch": item.batch})
+            userList.append({"email": item.email, "date_joined": item.date_joined, "branch": item.user_branch, "batch": item.batch})
         return JsonResponse({"userList": userList}, status=200)
     else:
         return JsonResponse({"error": "User not verified"})
@@ -82,8 +82,8 @@ def get_group_messages(request, group):
     user = request.user    
     if user.is_verified:
         group = get_object_or_404(Group, name=group)
-        messages = Message.objects.filter(group=group).order_by('timestamp')[:30]
-
+        messages = Message.objects.filter(group=group).order_by('-timestamp')[:30]
+        messages = messages[::-1]
         message_data = []
         for message in messages:
             message_data.append({
