@@ -53,9 +53,7 @@ def login_view(request):
         body = json.loads(request.body)
         email = body.get('email')
         password = body.get('password')
-        print(email, password)
         user = authenticate(request, email=email, password=password)
-        print(user)
         if user is not None:
             login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': user.email, 'verified': user.is_verified, "is_staff": user.is_userStaff}, status=200)

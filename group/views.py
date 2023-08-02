@@ -90,6 +90,8 @@ def get_group_data(request, group):
                 'content': message.content,
                 'timestamp': message.timestamp.isoformat(),
                 'user': message.user.email,
+                'groupName': message.group.name,
+                'type': 'MSG',
             })
         
         permissionIssues = PermissionIssueMessage.objects.filter(group=group).order_by('-timestamp')[:30]
@@ -100,6 +102,9 @@ def get_group_data(request, group):
                 'content': isp.content,
                 'timestamp': isp.timestamp.isoformat(),
                 'user': isp.user.email,
+            	'groupName': isp.group.name,
+                'type': 'ISP',
+                'category': isp.category,
             })
         return JsonResponse({'messages': message_data, "isp": isp_data})
     else:

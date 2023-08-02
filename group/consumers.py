@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
-from .models import Message, Group
+from .models import Message, Group, PermissionIssueMessage
 from django.contrib.auth import get_user_model
 from cryptography.fernet import Fernet
 import base64
@@ -51,9 +51,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def saveIssuePermissionMessage(self, message, userId, groupName, category):
         userObj = get_user_model().objects.get(email=userId)
         chatObj = Group.objects.get(name=groupName)
-        IssuePermissionMsgObj = Message.objects.create(
+        IssuePermissionMsgObj = PermissionIssueMessage.objects.create(
         	group=chatObj, user=userObj, content=message, category=category
         )
+
         return {
         	'action': 'message',
         	'user': userId,
@@ -95,7 +96,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             groupName = text_data_json["groupName"]
             sender = text_data_json["sender"]
 
-            if typeOfMessage == "MSG":
+            if typeOfMessage == "MSG":  
 
                 chatMessage = await database_sync_to_async(
 		        		self.saveMessage
