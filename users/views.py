@@ -14,8 +14,10 @@ CustomUser = get_user_model()
 
 CLIENT_ID = os.getenv('APP_CLIENT_ID')
 
-def home(request) :
+
+def home(request):
     return HttpResponse('Maven Backend Server')
+
 
 @csrf_exempt
 @require_POST
@@ -32,21 +34,21 @@ def googleLogin(request):
     #     return HttpResponseBadRequest('Failed to verify double submit cookie.')
     try:
         idToken = json.loads(request.body).get('id_token')
-        idinfo = id_token.verify_oauth2_token(idToken, requests.Request(), CLIENT_ID)
+        idinfo = id_token.verify_oauth2_token(
+            idToken, requests.Request(), CLIENT_ID)
         email = idinfo.get('email')
         user = authenticate(request, email=email)
         if user is not None:
             login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
         else:
-            user = CustomUser(email=email)
-            user.set_unusable_password()
-            user.save()
+            user = CustomUser.objects.create_user(email=email)
             login(request, user, backend='server.authBackend.CustomAuth')
             return JsonResponse({'email': email, 'verified': user.is_verified}, status=200)
     except ValueError as e:
-        return JsonResponse({'error': '%s' %e},status=400)
-    
+        return JsonResponse({'error': '%s' % e}, status=400)
+
+
 @require_POST
 def login_view(request):
     try:
@@ -61,8 +63,8 @@ def login_view(request):
             return JsonResponse({'error': 'Invalid email or password.'}, status=400)
     except:
         return JsonResponse({"message": "Bad Request"}, status=400)
-        
-    
+
+
 @require_POST
 def register_user(request):
     try:
@@ -75,12 +77,14 @@ def register_user(request):
             if user_exists or request.user.is_authenticated:
                 return HttpResponseBadRequest('User already exists')
             else:
-                user = CustomUser.objects.create_user(email=email,password=password)
+                user = CustomUser.objects.create_user(
+                    email=email, password=password)
                 return JsonResponse({'message': 'Successfully Registered'})
         else:
             return HttpResponseBadRequest('Only IIITDMJ organisation emails can be registered.')
     except:
         return JsonResponse({"message": "Bad Request"}, status=400)
+
 
 @require_POST
 @login_required
@@ -89,15 +93,16 @@ def verify_user(request):
     body = json.loads(request.body)
     branch = body.get('branch')
     batch = body.get('batch')
-    if branch and batch :
+    if branch and batch:
         try:
             user.batch = int(batch)
             user.user_branch = branch
             user.is_verified = True
-            batch_groups = Group.objects.filter(batch=batch, is_BatchCommon=True)
+            batch_groups = Group.objects.filter(
+                batch=batch, is_BatchCommon=True)
             for group in batch_groups:
                 group.users.add(user)
-            
+
             branch_groups = Group.objects.filter(batch=batch, branch=branch)
             for group in branch_groups:
                 group.users.add(user)
@@ -106,17 +111,18 @@ def verify_user(request):
             return JsonResponse({'message': 'Verification successfull'})
         except KeyError as e:
             print(e)
-            return JsonResponse({'error':'Incorrect Payload'}, status=400)
+            return JsonResponse({'error': 'Incorrect Payload'}, status=400)
+
 
 def logout_view(request):
     logout(request)
     return HttpResponse('Logged out')
 
+
 @require_GET
 def get_profile(request):
-    user = request.user 
+    user = request.user
     if user.is_authenticated:
         return JsonResponse({'message': 'User is authenticated', 'email': user.email, 'verified': user.is_verified, 'is_userStaff': user.is_userStaff, 'branch': user.user_branch})
     else:
-        return JsonResponse({'error': 'User not authenticated'},status='403')
-    
+        return JsonResponse({'error': 'User not authenticated'}, status='403')

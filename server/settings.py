@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'group.apps.GroupConfig',
+    'lostandfound.apps.LostandfoundConfig',
     'corsheaders',
 ]
 
@@ -92,12 +93,15 @@ WSGI_APPLICATION = 'server.wsgi.application'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-       'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mavendb',
         'USER': 'postgres',
         'PASSWORD': 'root',
@@ -106,13 +110,13 @@ DATABASES = {
     }
 }
 
-#Backends
+# Backends
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 AUTHENTICATION_BACKENDS = [
     'server.authBackend.CustomAuth',
     # 'server.authBackend.EmailPasswordBackend',
-    # 'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Password validation
