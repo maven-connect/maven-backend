@@ -6,12 +6,10 @@ from django.conf import settings
 def upload_to(instance, filename):
     return 'images/{filename}'.format(filename=filename)
 
-# Create your models here.
-
 
 class LostAndFoundModel(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     image_url = models.ImageField(upload_to=upload_to, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 

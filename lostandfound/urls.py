@@ -6,4 +6,5 @@ from . import views
 urlpatterns = [
     path('create', views.createLostFound,
          name="create lost and found"),
+    path('all', views.getLostFoundItems, name='Get lost found items')
 ]

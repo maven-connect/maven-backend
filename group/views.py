@@ -12,7 +12,7 @@ import json
 #     group = get_object_or_404(Group, pk=group_id)
 
 #     try:
-#         user = request.user 
+#         user = request.user
 #         content = request.POST.get('content')
 #         message = Message(group=group, user=user, content=content)
 #         message.save()
@@ -24,6 +24,7 @@ import json
 #         return JsonResponse({'chats': chat_data}, safe=False)
 #     except:
 #         return JsonResponse({'message': 'Error creating message'}, status=400)
+
 
 @login_required
 @require_POST
@@ -38,30 +39,35 @@ def new_group(request):
 
         if user.is_userStaff and group_name and group_batch:
             if group_branch:
-                group = Group.objects.create(name=group_name, batch=group_batch, branch=group_branch, description=description, admin=user)
+                group = Group.objects.create(
+                    name=group_name, batch=group_batch, branch=group_branch, description=description, admin=user)
                 group.users.add(user)
-                return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
+                return JsonResponse({"name": group.name, "batch": group.batch, "branch": group.branch, "description": group.description}, status=200)
             else:
-                group = Group.objects.create(name=group_name, batch=group_batch, is_BatchCommon=True, description=description, admin=user)
+                group = Group.objects.create(
+                    name=group_name, batch=group_batch, is_BatchCommon=True, description=description, admin=user)
                 group.users.add(user)
-                return JsonResponse({"name":group.name, "batch": group.batch, "branch": group.branch, "description": group.description},status=200 )
+                return JsonResponse({"name": group.name, "batch": group.batch, "branch": group.branch, "description": group.description}, status=200)
         else:
             return JsonResponse({'error': "No group name field found."}, status=400)
     except:
         return JsonResponse({"error": "Error"}, status=400)
-    
+
+
 @login_required
 @require_GET
-def get_joined_groups(request) :
-    user = request.user    
+def get_joined_groups(request):
+    user = request.user
     if user.is_verified:
         joined_groups = []
         for grp in user.group_set.all():
-            joined_groups.append({"name":grp.name, "batch": grp.batch, "branch": grp.branch, "description": grp.description, "admin": grp.admin.email if grp.admin else None })
+            joined_groups.append({"name": grp.name, "batch": grp.batch, "branch": grp.branch,
+                                 "description": grp.description, "admin": grp.admin.email if grp.admin else None})
         return JsonResponse({"groups": joined_groups}, safe=False)
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
-    
+
+
 @login_required
 @require_GET
 def get_group_participants(request, group_name):
@@ -71,18 +77,21 @@ def get_group_participants(request, group_name):
         users = group.users.all()
         userList = []
         for item in users:
-            userList.append({"email": item.email, "date_joined": item.date_joined, "branch": item.user_branch, "batch": item.batch})
+            userList.append({"email": item.email, "date_joined": item.date_joined,
+                            "branch": item.user_branch, "batch": item.batch})
         return JsonResponse({"userList": userList}, status=200)
     else:
         return JsonResponse({"error": "User not verified"})
 
+
 @login_required
 @require_GET
 def get_group_data(request, group):
-    user = request.user    
+    user = request.user
     if user.is_verified:
         group = get_object_or_404(Group, name=group)
-        messages = Message.objects.filter(group=group).order_by('-timestamp')[:30]
+        messages = Message.objects.filter(
+            group=group).order_by('-timestamp')[:30]
         messages = messages[::-1]
         message_data = []
         for message in messages:
@@ -93,8 +102,9 @@ def get_group_data(request, group):
                 'groupName': message.group.name,
                 'type': 'MSG',
             })
-        
-        permissionIssues = PermissionIssueMessage.objects.filter(group=group).order_by('-timestamp')[:30]
+
+        permissionIssues = PermissionIssueMessage.objects.filter(
+            group=group).order_by('-timestamp')[:30]
         permissionIssues = permissionIssues[::-1]
         isp_data = []
         for isp in permissionIssues:
@@ -102,7 +112,7 @@ def get_group_data(request, group):
                 'content': isp.content,
                 'timestamp': isp.timestamp.isoformat(),
                 'user': isp.user.email,
-            	'groupName': isp.group.name,
+                'groupName': isp.group.name,
                 'type': 'ISP',
                 'category': isp.category,
             })
