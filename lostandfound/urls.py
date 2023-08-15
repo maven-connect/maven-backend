@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('create', views.createLostFound,
-         name="create lost and found"),
-    path('all', views.getLostFoundItems, name='Get lost found items')
+         name="create lost found item"),
+    path('all', views.getLostFoundItems, name='Get lost found items'),
+    path('delete', views.deleteLostFoundItem, name="delete lost found item")
 ]

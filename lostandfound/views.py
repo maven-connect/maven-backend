@@ -26,7 +26,7 @@ def createLostFound(request):
                 'category')
             lost_and_found_item.save()
 
-            return JsonResponse({'message': 'Item created successfully', 'image': lost_and_found_item.image_url.url if lost_and_found_item.image_url else None})
+            return JsonResponse({'name': lost_and_found_item.name, 'id': lost_and_found_item.pk, 'description': lost_and_found_item.description if lost_and_found_item.description else None, 'image': lost_and_found_item.image_url.url if lost_and_found_item.image_url else None, 'timestamp': lost_and_found_item.timestamp, 'user': lost_and_found_item.user.email})
         else:
             return JsonResponse({'message': 's req'}, status=400)
 
@@ -51,11 +51,11 @@ def getLostFoundItems(request):
         FoundData = []
         for i in LostItems:
             LostData.append(
-                {'name': i.name, 'id': i.pk, 'image': i.image_url.url if i.image_url else None, 'timestamp': i.timestamp, 'user': i.user.email})
+                {'name': i.name, 'id': i.pk, 'description': i.description if i.description else None, 'image': i.image_url.url if i.image_url else None, 'timestamp': i.timestamp, 'user': i.user.email})
 
         for i in FoundItems:
             FoundData.append(
-                {'name': i.name, 'id': i.pk, 'image': i.image_url.url if i.image_url else None, 'timestamp': i.timestamp, 'user': i.user.email})
+                {'name': i.name, 'id': i.pk, 'description': i.description if i.description else None, 'image': i.image_url.url if i.image_url else None, 'timestamp': i.timestamp, 'user': i.user.email})
 
         return JsonResponse({'LostData': LostData, 'FoundData': FoundData})
     except Exception as e:
