@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import lostandfound.models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -17,13 +18,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LostAndFoundModel',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50)),
                 ('description', models.TextField()),
-                ('image_url', models.ImageField(blank=True, null=True, upload_to=lostandfound.models.upload_to)),
+                ('image_url', models.ImageField(blank=True,
+                 null=True, upload_to=lostandfound.models.upload_to)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('category', models.CharField(choices=[('LOST', 'Lost'), ('FOUND', 'Found')], max_length=5)),
-                ('creator', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('category', models.CharField(choices=[
+                 ('LOST', 'Lost'), ('FOUND', 'Found')], max_length=5)),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

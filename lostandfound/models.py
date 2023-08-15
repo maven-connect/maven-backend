@@ -13,7 +13,8 @@ class LostAndFoundModel(models.Model):
     image_url = models.ImageField(upload_to=upload_to, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    creator = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='creator_lostfound')
     categories = [
         ("LOST", "Lost"),
         ("FOUND", "Found"),
