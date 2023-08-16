@@ -22,5 +22,7 @@ class LostAndFoundModel(models.Model):
     category = models.CharField(
         choices=categories, max_length=5, null=False, blank=False)
 
+    contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
+
     def __str__(self):
         return self.name
