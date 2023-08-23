@@ -115,7 +115,40 @@ def get_group_data(request, group):
                 'groupName': isp.group.name,
                 'type': 'ISP',
                 'category': isp.category,
+                'id': isp.pk,
+                'accepted': isp.accepted
             })
         return JsonResponse({'messages': message_data, "isp": isp_data})
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
+
+
+@login_required
+@require_POST
+def approve_PermIssue(request, group_name):
+    user = request.user
+    try:
+        body = json.loads(request.body)
+        permIssId = body.get('id')
+        grp = get_object_or_404(Group, name=group_name)
+
+        if grp.admin.email == user.email:
+            permIssueItem = get_object_or_404(
+                PermissionIssueMessage, pk=permIssId)
+            permIssueItem.accepted = True
+            permIssueItem.save()
+
+            return JsonResponse({
+                'content': permIssueItem.content,
+                'timestamp': permIssueItem.timestamp.isoformat(),
+                'user': permIssueItem.user.email,
+                'groupName': permIssueItem.group.name,
+                'type': 'ISP',
+                'category': permIssueItem.category,
+                'id': permIssueItem.pk,
+                'accepted': permIssueItem.accepted
+            })
+        else:
+            return JsonResponse({'message': 'Bad request'}, status=400)
+    except:
+        return JsonResponse({'Failed'}, status=400)
