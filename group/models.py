@@ -52,3 +52,12 @@ class PermissionIssueMessage(models.Model):
 
     def __str__(self):
         return self.category + ": " + self.content[:10]
+
+
+class GroupAttendance(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    date = models.DateField()
+    users_attended = models.ManyToManyField(settings.AUTH_USER_MODEL)
+
+    def __str__(self):
+        return self.group.name + " " + str(self.date)

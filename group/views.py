@@ -1,11 +1,14 @@
 from django.contrib.auth.decorators import login_required
-from .models import Group, Message, PermissionIssueMessage
+from .models import Group, Message, PermissionIssueMessage, GroupAttendance
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
 from django.core import serializers
 from django.http import JsonResponse
 import json
+from datetime import date
+from django.contrib.auth import get_user_model
 
+CustomUser = get_user_model()
 # @login_required
 # @require_POST
 # def new_message(request, group_id):
@@ -42,12 +45,12 @@ def new_group(request):
                 group = Group.objects.create(
                     name=group_name, batch=group_batch, branch=group_branch, description=description, admin=user)
                 group.users.add(user)
-                return JsonResponse({"name": group.name, "batch": group.batch, "branch": group.branch, "description": group.description, "admin": group.admin.email if group.admin else None}, status=200)
+                return JsonResponse({"name": group.name, "id": group.pk, "batch": group.batch, "branch": group.branch, "description": group.description, "admin": group.admin.email if group.admin else None}, status=200)
             else:
                 group = Group.objects.create(
                     name=group_name, batch=group_batch, is_BatchCommon=True, description=description, admin=user)
                 group.users.add(user)
-                return JsonResponse({"name": group.name, "batch": group.batch, "branch": group.branch, "description": group.description, "admin": group.admin.email if group.admin else None}, status=200)
+                return JsonResponse({"name": group.name, "id": group.pk, "batch": group.batch, "branch": group.branch, "description": group.description, "admin": group.admin.email if group.admin else None}, status=200)
         else:
             return JsonResponse({'error': "No group name field found."}, status=400)
     except:
@@ -62,7 +65,7 @@ def get_joined_groups(request):
         joined_groups = []
         for grp in user.group_set.all():
             joined_groups.append({"name": grp.name, "batch": grp.batch, "branch": grp.branch,
-                                 "description": grp.description, "admin": grp.admin.email if grp.admin else None})
+                                 "description": grp.description, "admin": grp.admin.email if grp.admin else None, "id": grp.pk})
         return JsonResponse({"groups": joined_groups}, safe=False)
     else:
         return JsonResponse({'error': 'User is not verified.'}, status=400)
@@ -151,4 +154,53 @@ def approve_PermIssue(request, group_name):
         else:
             return JsonResponse({'message': 'Bad request'}, status=400)
     except:
-        return JsonResponse({'Failed'}, status=400)
+        return JsonResponse({'message': 'Failed'}, status=400)
+
+
+@login_required
+@require_POST
+def mark_attendance(request, group_name, year, month, day):
+    try:
+        user = request.user
+        grp = get_object_or_404(Group, name=group_name)
+        attendance_date = date(year, month, day)
+
+        if grp.admin.email == user.email:
+            body = json.loads(request.body)
+            present_users = body.get('present')
+
+            users_attended = [CustomUser.objects.get(
+                email=user_email) for user_email in present_users]
+            group_attendance, created = GroupAttendance.objects.get_or_create(
+                group=grp, date=attendance_date)
+
+            group_attendance.users_attended.set(users_attended)
+            group_attendance.save()
+
+            return JsonResponse({'message': 'successful'})
+        else:
+            return JsonResponse({'message': 'Unauthorised'}, status=401)
+    except:
+        return JsonResponse({'message': 'Failed'}, status=400)
+
+
+@login_required
+@require_GET
+def user_group_attendance(request, group_id):
+    user = request.user
+    group = get_object_or_404(Group, pk=group_id)
+
+    try:
+        user_attendance_for_group = GroupAttendance.objects.filter(
+            group=group, users_attended=user)
+
+        all_group_dates = [
+            attendance.date for attendance in user_attendance_for_group]
+
+        present_dates = [date.isoformat() for date in all_group_dates]
+
+        return JsonResponse({'present': present_dates})
+
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': 'error'}, staus=400)

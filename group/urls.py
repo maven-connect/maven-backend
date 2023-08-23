@@ -11,4 +11,8 @@ urlpatterns = [
     path('new', views.new_group, name="new group"),
     path('<str:group_name>/approve', views.approve_PermIssue,
          name="approve permission issue"),
+    path('mark-attendance/<str:group_name>/<int:year>/<int:month>/<int:day>/',
+         views.mark_attendance, name='mark_group_attendance'),
+    path('user-attendance/<int:group_id>/',
+         views.user_group_attendance, name="user_attendance_group")
 ]
