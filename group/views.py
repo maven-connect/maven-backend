@@ -45,6 +45,11 @@ def new_group(request):
                 group = Group.objects.create(
                     name=group_name, batch=group_batch, branch=group_branch, description=description, admin=user)
                 group.users.add(user)
+                userList = CustomUser.objects.filter(
+                    user_branch=group_branch, batch=group_batch)
+
+                for us in userList:
+                    group.users.add(us)
                 return JsonResponse({"name": group.name, "id": group.pk, "batch": group.batch, "branch": group.branch, "description": group.description, "admin": group.admin.email if group.admin else None}, status=200)
             else:
                 group = Group.objects.create(

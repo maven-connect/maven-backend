@@ -1,6 +1,7 @@
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth import get_user_model
 
+
 class CustomAuth(BaseBackend):
 
     def authenticate(self, request, email=None, password=None, **kwargs):
@@ -17,7 +18,8 @@ class CustomAuth(BaseBackend):
             except UserModel.DoesNotExist:
                 return None
             else:
-                if user.password == password:
+                print(user.password, user.check_password(password), password)
+                if user.password == password or user.check_password(password):
                     return user
                 else:
                     return None
