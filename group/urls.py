@@ -14,5 +14,7 @@ urlpatterns = [
     path('mark-attendance/<str:group_name>/<int:year>/<int:month>/<int:day>/',
          views.mark_attendance, name='mark_group_attendance'),
     path('user-attendance/<int:group_id>/',
-         views.user_group_attendance, name="user_attendance_group")
+         views.user_group_attendance, name="user_attendance_group"),
+    path('group-attendance/<int:group_id>/<int:year>/<int:month>/<int:day>/',
+         views.users_attended_on_day, name="users_on_day")
 ]

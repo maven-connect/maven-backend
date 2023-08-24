@@ -167,14 +167,14 @@ def mark_attendance(request, group_name, year, month, day):
 
         if grp.admin.email == user.email:
             body = json.loads(request.body)
-            present_users = body.get('present')
+            absent_users = body.get('absent')
 
-            users_attended = [CustomUser.objects.get(
-                email=user_email) for user_email in present_users]
+            users_unattended = [CustomUser.objects.get(
+                email=user_email) for user_email in absent_users]
             group_attendance, created = GroupAttendance.objects.get_or_create(
                 group=grp, date=attendance_date)
 
-            group_attendance.users_attended.set(users_attended)
+            group_attendance.users_attended.set(users_unattended)
             group_attendance.save()
 
             return JsonResponse({'message': 'successful'})
@@ -204,3 +204,23 @@ def user_group_attendance(request, group_id):
     except Exception as e:
         print(e)
         return JsonResponse({'error': 'error'}, staus=400)
+
+
+@login_required
+@require_GET
+def users_attended_on_day(request, group_id, year, month, day):
+    group = get_object_or_404(Group, pk=group_id)
+    attendance_date = date(year, month, day)
+
+    try:
+        group_attendance = get_object_or_404(
+            GroupAttendance, group=group, date=attendance_date)
+        # group_attendance = GroupAttendance.objects.get(group=group, date=attendance_date)
+        users_attended = group_attendance.users_attended.all()
+        absent_users = []
+        for i in users_attended:
+            absent_users.append(i.email)
+        print(absent_users)
+        return JsonResponse({'absent': absent_users})
+    except GroupAttendance.DoesNotExist:
+        return JsonResponse({'msg': 'failed'}, status=400)
