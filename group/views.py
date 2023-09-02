@@ -204,7 +204,7 @@ def user_group_attendance(request, group_id):
 
         present_dates = [date.isoformat() for date in all_group_dates]
 
-        return JsonResponse({'present': present_dates})
+        return JsonResponse({'absent': present_dates})
 
     except Exception as e:
         print(e)
