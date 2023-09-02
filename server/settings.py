@@ -14,9 +14,10 @@ SESSION_COOKIE_AGE = 86400
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://maven.centralindia.cloudapp.azure.com'
 ]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://maven.centralindia.cloudapp.azure.com']
 
 ENCRYPT_KEY = b'iDJpljxUBBsacCZ50GpSBff6Xem0R-giqXXnBFGJ2Rs='
 
@@ -105,7 +106,7 @@ DATABASES = {
         'NAME': 'mavendb',
         'USER': 'postgres',
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': 5432,
     }
 }
