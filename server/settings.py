@@ -14,9 +14,12 @@ SESSION_COOKIE_AGE = 86400
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://maven.centralindia.cloudapp.azure.com'
 ]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://maven.centralindia.cloudapp.azure.com']
+
+ENCRYPT_KEY = b'iDJpljxUBBsacCZ50GpSBff6Xem0R-giqXXnBFGJ2Rs='
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -33,6 +36,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,8 +45,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'group.apps.GroupConfig',
+    'lostandfound.apps.LostandfoundConfig',
     'corsheaders',
 ]
+
+ASGI_APPLICATION = 'server.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -78,23 +94,30 @@ WSGI_APPLICATION = 'server.wsgi.application'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mavendb',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
-#Backends
+# Backends
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 AUTHENTICATION_BACKENDS = [
-    'server.authBackend.googleAuthBackend',
-    'server.authBackend.EmailPasswordBackend',
-    # 'django.contrib.auth.backends.ModelBackend',
+    'server.authBackend.CustomAuth',
+    # 'server.authBackend.EmailPasswordBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Password validation

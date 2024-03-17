@@ -1,0 +1,132 @@
+[
+  {
+    "pk": 1,
+    "model": "users.CustomUser",
+    "fields": {
+      "email": "da@da.da",
+      "password": "da",
+      "is_verified": "True",
+      "is_userStaff": "True"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 1,
+    "fields": {
+      "name": "Batch_2021",
+      "batch": 2021,
+      "is_BatchCommon": true,
+      "description": "Group for 2021 Batch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 2,
+    "fields": {
+      "name": "Batch_2022",
+      "batch": 2022,
+      "is_BatchCommon": true,
+      "description": "Group for 2022 Batch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 3,
+    "fields": {
+      "name": "Batch_2023",
+      "batch": 2023,
+      "is_BatchCommon": true,
+      "description": "Group for 2023 Batch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 4,
+    "fields": {
+      "name": "CSE_2021",
+      "batch": 2021,
+      "branch": "CS",
+      "description": "Group for 2021 Batch CSE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 5,
+    "fields": {
+      "name": "CSE_2022",
+      "batch": 2022,
+      "branch": "CS",
+      "description": "Group for 2022 Batch CSE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 6,
+    "fields": {
+      "name": "CSE_2023",
+      "batch": 2023,
+      "branch": "CS",
+      "description": "Group for 2023 Batch CSE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 7,
+    "fields": {
+      "name": "ECE_2021",
+      "batch": 2021,
+      "branch": "ECE",
+      "description": "Group for 2021 Batch ECE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 8,
+    "fields": {
+      "name": "ECE_2022",
+      "batch": 2022,
+      "branch": "ECE",
+      "description": "Group for 2022 Batch ECE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 9,
+    "fields": {
+      "name": "ECE_2023",
+      "batch": 2023,
+      "branch": "ECE",
+      "description": "Group for 2023 Batch ECE Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 10,
+    "fields": {
+      "name": "MECH_2021",
+      "batch": 2021,
+      "branch": "MECH",
+      "description": "Group for 2021 Batch MECH Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 11,
+    "fields": {
+      "name": "MECH_2022",
+      "batch": 2022,
+      "branch": "MECH",
+      "description": "Group for 2022 Batch MECH Branch"
+    }
+  },
+  {
+    "model": "group.Group",
+    "pk": 12,
+    "fields": {
+      "name": "MECH_2023",
+      "batch": 2023,
+      "branch": "MECH",
+      "description": "Group for 2023 Batch MECH Branch"
+    }
+  }
+]
